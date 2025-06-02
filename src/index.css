@@ -339,18 +339,18 @@
   }
 
   .notification-popup {
+.notification-popup {
     @apply top-2 right-2 left-2 max-w-none;
   }
 
   .notification-actions {
     @apply flex-col space-x-0 space-y-2;
   }
-.notification-btn {
+  
+  .notification-btn {
     @apply w-full justify-center;
   }
 }
-
-/* Statistics Dashboard Styles */
 .stats-dashboard {
   @apply space-y-6 lg:space-y-8;
 }
@@ -534,8 +534,6 @@
     @apply flex-col items-start space-y-2;
   }
   
-  .time-range-selector {
-    @apply w-full;
 .time-range-selector {
     @apply w-full;
   }
@@ -588,8 +586,6 @@
 
 .sidebar-add-btn {
   @apply p-1.5 rounded-md hover:bg-surface-100 dark:hover:bg-surface-700 transition-colors;
-.sidebar-add-btn {
-  @apply p-1.5 rounded-md hover:bg-surface-100 dark:hover:bg-surface-700 transition-colors;
 }
 
 .sidebar-list {
@@ -601,10 +597,8 @@
 }
 
 .sidebar-item.active {
-.sidebar-item.active {
   @apply bg-primary/10 dark:bg-primary/20 border-l-4 border-primary;
 }
-
 .sidebar-item-content {
   @apply flex items-center space-x-3 flex-1 min-w-0;
 }
@@ -715,10 +709,12 @@
 .sidebar-section-expand {
   @apply max-h-96 transition-all duration-300 ease-in-out;
 }
+
 /* Tooltip for collapsed sidebar */
 .sidebar-tooltip {
   @apply absolute left-full ml-2 px-2 py-1 bg-surface-900 dark:bg-surface-700 text-white text-xs rounded shadow-lg opacity-0 pointer-events-none transition-all duration-200 z-50;
 }
 .sidebar-collapsed .sidebar-item:hover .sidebar-tooltip {
   @apply opacity-100;
+}
 }
