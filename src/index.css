@@ -335,11 +335,10 @@
   }
   
   .input-field {
-    @apply px-3 py-2.5 text-base;
+@apply px-3 py-2.5 text-base;
   }
 
   .notification-popup {
-.notification-popup {
     @apply top-2 right-2 left-2 max-w-none;
   }
 
@@ -595,10 +594,10 @@
 .sidebar-item {
   @apply flex items-center justify-between p-3 rounded-lg hover:bg-surface-50 dark:hover:bg-surface-700 transition-all duration-200 cursor-pointer;
 }
-
 .sidebar-item.active {
   @apply bg-primary/10 dark:bg-primary/20 border-l-4 border-primary;
 }
+
 .sidebar-item-content {
   @apply flex items-center space-x-3 flex-1 min-w-0;
 }
@@ -714,7 +713,7 @@
 .sidebar-tooltip {
   @apply absolute left-full ml-2 px-2 py-1 bg-surface-900 dark:bg-surface-700 text-white text-xs rounded shadow-lg opacity-0 pointer-events-none transition-all duration-200 z-50;
 }
+
 .sidebar-collapsed .sidebar-item:hover .sidebar-tooltip {
   @apply opacity-100;
-}
 }

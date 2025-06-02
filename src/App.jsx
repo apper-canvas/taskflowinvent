@@ -53,18 +53,8 @@ function App() {
               </div>
               <h1 className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                 TaskFlow
-              </h1>
+</h1>
             </div>
-            
-            <button
-              onClick={() => setDarkMode(!darkMode)}
-              className="p-2 rounded-lg bg-surface-100 dark:bg-surface-700 hover:bg-surface-200 dark:hover:bg-surface-600 transition-colors"
-            >
-              <ApperIcon 
-                name={darkMode ? "Sun" : "Moon"} 
-                className="w-5 h-5 text-surface-600 dark:text-surface-300" 
-              />
-</button>
             
             <div className="flex items-center space-x-2">
               <button
@@ -86,7 +76,6 @@ function App() {
                   className="w-5 h-5 text-surface-600 dark:text-surface-300" 
                 />
               </button>
-            </div>
           </div>
         </div>
       </header>
