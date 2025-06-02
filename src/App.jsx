@@ -45,8 +45,9 @@ function App() {
         </div>
       </header>
 
-      <Routes>
+<Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/calendar" element={<Calendar />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
 

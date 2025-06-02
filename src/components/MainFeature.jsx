@@ -244,6 +244,32 @@ const MainFeature = () => {
         </motion.div>
       </div>
 
+{/* View Toggle */}
+      <div className="mb-6 lg:mb-8">
+        <div className="nav-tabs max-w-md mx-auto sm:mx-0">
+          <button
+            onClick={() => {
+              setActiveView('list')
+              navigate('/')
+            }}
+            className={`nav-tab ${location.pathname === '/' ? 'nav-tab-active' : 'nav-tab-inactive'}`}
+          >
+            <ApperIcon name="List" className="w-4 h-4" />
+            <span>List View</span>
+          </button>
+          <button
+            onClick={() => {
+              setActiveView('calendar')
+              navigate('/calendar')
+            }}
+            className={`nav-tab ${location.pathname === '/calendar' ? 'nav-tab-active' : 'nav-tab-inactive'}`}
+          >
+            <ApperIcon name="Calendar" className="w-4 h-4" />
+            <span>Calendar View</span>
+          </button>
+        </div>
+      </div>
+
       {/* Controls */}
       <div className="bg-white dark:bg-surface-800 rounded-xl shadow-card p-4 lg:p-6 mb-6 lg:mb-8">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0 lg:space-x-4">

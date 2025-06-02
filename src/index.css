@@ -98,6 +98,88 @@
   .filter-chip-active {
     @apply bg-primary text-white;
   }
+
+  /* Calendar styles */
+  .nav-tabs {
+    @apply flex bg-surface-100 dark:bg-surface-700 rounded-lg p-1;
+  }
+  
+  .nav-tab {
+    @apply flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 flex items-center justify-center space-x-2;
+  }
+  
+  .nav-tab-active {
+    @apply bg-white dark:bg-surface-600 text-primary shadow-sm;
+  }
+  
+  .nav-tab-inactive {
+    @apply text-surface-600 dark:text-surface-400 hover:text-surface-900 dark:hover:text-surface-200;
+  }
+
+  /* React Big Calendar overrides */
+  .rbc-calendar {
+    @apply bg-white dark:bg-surface-800 rounded-xl border border-surface-200 dark:border-surface-700;
+  }
+  
+  .rbc-header {
+    @apply bg-surface-50 dark:bg-surface-700 text-surface-700 dark:text-surface-300 font-semibold border-b border-surface-200 dark:border-surface-600;
+  }
+  
+  .rbc-month-view {
+    @apply border-surface-200 dark:border-surface-700;
+  }
+  
+  .rbc-date-cell {
+    @apply text-surface-600 dark:text-surface-400;
+  }
+  
+  .rbc-today {
+    @apply bg-primary/10 dark:bg-primary/20;
+  }
+  
+  .rbc-off-range-bg {
+    @apply bg-surface-50 dark:bg-surface-900;
+  }
+  
+  .rbc-event {
+    @apply rounded-md border-0 text-xs font-medium;
+  }
+  
+  .rbc-event.priority-low {
+    @apply bg-green-500 text-white;
+  }
+  
+  .rbc-event.priority-medium {
+    @apply bg-yellow-500 text-white;
+  }
+  
+  .rbc-event.priority-high {
+    @apply bg-red-500 text-white;
+  }
+  
+  .rbc-event.priority-urgent {
+    @apply bg-purple-500 text-white;
+  }
+  
+  .rbc-event.status-completed {
+    @apply opacity-60 line-through;
+  }
+  
+  .rbc-toolbar {
+    @apply mb-4;
+  }
+  
+  .rbc-toolbar button {
+    @apply px-3 py-2 mx-1 bg-surface-100 dark:bg-surface-700 text-surface-700 dark:text-surface-300 rounded-lg border-0 hover:bg-surface-200 dark:hover:bg-surface-600 transition-colors;
+  }
+  
+  .rbc-toolbar button.rbc-active {
+    @apply bg-primary text-white;
+  }
+  
+  .rbc-btn-group button {
+    @apply first:rounded-l-lg last:rounded-r-lg;
+  }
 }
 
 @layer utilities {
