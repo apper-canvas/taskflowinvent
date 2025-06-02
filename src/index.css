@@ -589,13 +589,10 @@
 
 .sidebar-list {
   @apply space-y-1;
-.sidebar-list {
-  @apply space-y-1;
 }
 
 .sidebar-item {
   @apply flex items-center justify-between p-3 rounded-lg hover:bg-surface-50 dark:hover:bg-surface-700 transition-all duration-200 cursor-pointer;
-}
 }
 
 .sidebar-item-content {
