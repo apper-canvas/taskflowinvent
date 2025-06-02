@@ -240,6 +240,88 @@
     opacity: 1;
   }
 }
+/* Notification System Styles */
+.notification-popup {
+  @apply fixed top-4 right-4 z-50 bg-white dark:bg-surface-800 rounded-xl shadow-card border border-surface-200 dark:border-surface-700 p-4 max-w-sm w-full;
+}
+
+.notification-popup.slide-in {
+  animation: slideInRight 0.3s ease-out;
+}
+
+.notification-popup.slide-out {
+  animation: slideOutRight 0.3s ease-in;
+}
+
+.notification-header {
+  @apply flex items-center justify-between mb-3;
+}
+
+.notification-title {
+  @apply font-semibold text-surface-900 dark:text-surface-100;
+}
+
+.notification-close {
+  @apply p-1 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-700 transition-colors;
+}
+
+.notification-content {
+  @apply text-surface-600 dark:text-surface-400 mb-4;
+}
+
+.notification-actions {
+  @apply flex space-x-2;
+}
+
+.notification-btn {
+  @apply px-3 py-1.5 text-sm font-medium rounded-lg transition-colors;
+}
+
+.notification-btn-primary {
+  @apply bg-primary text-white hover:bg-primary-dark;
+}
+
+.notification-btn-secondary {
+  @apply bg-surface-100 dark:bg-surface-700 text-surface-700 dark:text-surface-300 hover:bg-surface-200 dark:hover:bg-surface-600;
+}
+
+.notification-due-indicator {
+  @apply inline-flex items-center px-2 py-1 rounded-full text-xs font-medium;
+}
+
+.notification-due-today {
+  @apply bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300;
+}
+
+.notification-due-tomorrow {
+  @apply bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300;
+}
+
+.notification-overdue {
+  @apply bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300 animate-pulse;
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
 
 /* Mobile-specific improvements */
 @media (max-width: 640px) {
@@ -254,5 +336,17 @@
   
   .input-field {
     @apply px-3 py-2.5 text-base;
+  }
+
+  .notification-popup {
+    @apply top-2 right-2 left-2 max-w-none;
+  }
+
+  .notification-actions {
+    @apply flex-col space-x-0 space-y-2;
+  }
+
+  .notification-btn {
+    @apply w-full justify-center;
   }
 }
