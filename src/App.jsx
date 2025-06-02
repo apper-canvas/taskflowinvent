@@ -74,8 +74,9 @@ function App() {
                 <ApperIcon 
                   name={darkMode ? "Sun" : "Moon"} 
                   className="w-5 h-5 text-surface-600 dark:text-surface-300" 
-                />
+/>
               </button>
+            </div>
           </div>
         </div>
       </header>
