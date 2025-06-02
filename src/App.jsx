@@ -49,6 +49,7 @@ function App() {
 <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/calendar" element={<Calendar />} />
+        <Route path="/statistics" element={<Statistics />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
 
