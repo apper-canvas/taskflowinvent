@@ -248,7 +248,7 @@ const navigate = useNavigate()
 
 {/* View Toggle */}
       <div className="mb-6 lg:mb-8">
-        <div className="nav-tabs max-w-md mx-auto sm:mx-0">
+        <div className="nav-tabs max-w-lg mx-auto sm:mx-0">
           <button
             onClick={() => navigate('/')}
             className={`nav-tab ${location.pathname === '/' ? 'nav-tab-active' : 'nav-tab-inactive'}`}
@@ -256,12 +256,19 @@ const navigate = useNavigate()
             <ApperIcon name="List" className="w-4 h-4" />
             <span>List View</span>
           </button>
-<button
+          <button
             onClick={() => navigate('/calendar')}
             className={`nav-tab ${location.pathname === '/calendar' ? 'nav-tab-active' : 'nav-tab-inactive'}`}
           >
             <ApperIcon name="Calendar" className="w-4 h-4" />
             <span>Calendar View</span>
+          </button>
+          <button
+            onClick={() => navigate('/statistics')}
+            className={`nav-tab ${location.pathname === '/statistics' ? 'nav-tab-active' : 'nav-tab-inactive'}`}
+          >
+            <ApperIcon name="BarChart3" className="w-4 h-4" />
+            <span>Statistics</span>
           </button>
         </div>
       </div>
