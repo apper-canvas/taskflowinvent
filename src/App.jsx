@@ -748,9 +748,11 @@ const confirmDeleteAsync = async () => {
                 </button>
               </div>
             </motion.div>
-          </motion.div>
-)}
+</motion.div>
+        )}
       </AnimatePresence>
+      </div>
+    </div>
     </AuthContext.Provider>
   )
 }
