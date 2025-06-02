@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Routes, Route } from 'react-router-dom'
-import { ToastContainer } from 'react-toastify'
+import { AnimatePresence, motion } from 'framer-motion'
+import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import Home from './pages/Home'
 import Calendar from './pages/Calendar'
@@ -11,6 +12,71 @@ function App() {
   const [darkMode, setDarkMode] = useState(false)
   const [sidebarExpanded, setSidebarExpanded] = useState(true)
   const [sidebarMobileOpen, setSidebarMobileOpen] = useState(false)
+  
+  // State for projects and categories
+  const [projects, setProjects] = useState([])
+  const [categories, setCategories] = useState([])
+  
+  // Form state management
+  const [showProjectForm, setShowProjectForm] = useState(false)
+  const [showCategoryForm, setShowCategoryForm] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [editingItem, setEditingItem] = useState(null)
+  const [deleteTarget, setDeleteTarget] = useState(null)
+  
+  // Form data
+  const [projectFormData, setProjectFormData] = useState({ name: '', color: 'project-blue' })
+  const [categoryFormData, setCategoryFormData] = useState({ name: '', color: 'project-indigo' })
+  
+  // Available colors for projects and categories
+  const availableColors = [
+    'project-blue', 'project-green', 'project-purple', 'project-indigo',
+    'project-pink', 'project-teal', 'project-orange', 'project-red'
+  ]
+
+  // Load data from localStorage on mount
+  useEffect(() => {
+    const savedProjects = localStorage.getItem('taskflow-projects')
+    const savedCategories = localStorage.getItem('taskflow-categories')
+    
+    if (savedProjects) {
+      setProjects(JSON.parse(savedProjects))
+    } else {
+      // Default data if nothing in localStorage
+      const defaultProjects = [
+        { id: 1, name: 'Website Redesign', color: 'project-blue', taskCount: 8 },
+        { id: 2, name: 'Mobile App', color: 'project-green', taskCount: 12 },
+        { id: 3, name: 'Marketing Campaign', color: 'project-purple', taskCount: 5 }
+      ]
+      setProjects(defaultProjects)
+      localStorage.setItem('taskflow-projects', JSON.stringify(defaultProjects))
+    }
+    
+    if (savedCategories) {
+      setCategories(JSON.parse(savedCategories))
+    } else {
+      // Default data if nothing in localStorage
+      const defaultCategories = [
+        { id: 1, name: 'Development', color: 'project-indigo', taskCount: 15 },
+        { id: 2, name: 'Design', color: 'project-pink', taskCount: 7 },
+        { id: 3, name: 'Research', color: 'project-teal', taskCount: 4 }
+      ]
+      setCategories(defaultCategories)
+      localStorage.setItem('taskflow-categories', JSON.stringify(defaultCategories))
+    }
+  }, [])
+
+  // Save projects to localStorage
+  const saveProjects = (newProjects) => {
+    setProjects(newProjects)
+    localStorage.setItem('taskflow-projects', JSON.stringify(newProjects))
+  }
+
+  // Save categories to localStorage
+  const saveCategories = (newCategories) => {
+    setCategories(newCategories)
+    localStorage.setItem('taskflow-categories', JSON.stringify(newCategories))
+  }
 
   useEffect(() => {
     if (darkMode) {
@@ -28,18 +94,125 @@ function App() {
     }
   }
 
-  // Sample projects and categories data
-  const projects = [
-    { id: 1, name: 'Website Redesign', color: 'project-blue', taskCount: 8 },
-    { id: 2, name: 'Mobile App', color: 'project-green', taskCount: 12 },
-    { id: 3, name: 'Marketing Campaign', color: 'project-purple', taskCount: 5 }
-  ]
+  // Form handling functions
+  const openProjectForm = (project = null) => {
+    setEditingItem(project)
+    setProjectFormData(project ? { name: project.name, color: project.color } : { name: '', color: 'project-blue' })
+    setShowProjectForm(true)
+  }
 
-  const categories = [
-    { id: 1, name: 'Development', color: 'project-indigo', taskCount: 15 },
-    { id: 2, name: 'Design', color: 'project-pink', taskCount: 7 },
-    { id: 3, name: 'Research', color: 'project-teal', taskCount: 4 }
-  ]
+  const openCategoryForm = (category = null) => {
+    setEditingItem(category)
+    setCategoryFormData(category ? { name: category.name, color: category.color } : { name: '', color: 'project-indigo' })
+    setShowCategoryForm(true)
+  }
+
+  const resetForms = () => {
+    setShowProjectForm(false)
+    setShowCategoryForm(false)
+    setShowDeleteConfirm(false)
+    setEditingItem(null)
+    setDeleteTarget(null)
+    setProjectFormData({ name: '', color: 'project-blue' })
+    setCategoryFormData({ name: '', color: 'project-indigo' })
+  }
+
+  const submitProject = (e) => {
+    e.preventDefault()
+    if (!projectFormData.name.trim()) {
+      toast.error('Project name is required')
+      return
+    }
+
+    try {
+      if (editingItem) {
+        // Update existing project
+        const updatedProjects = projects.map(p => 
+          p.id === editingItem.id 
+            ? { ...p, name: projectFormData.name.trim(), color: projectFormData.color }
+            : p
+        )
+        saveProjects(updatedProjects)
+        toast.success('Project updated successfully!')
+      } else {
+        // Create new project
+        const newProject = {
+          id: Date.now(),
+          name: projectFormData.name.trim(),
+          color: projectFormData.color,
+          taskCount: 0
+        }
+        saveProjects([...projects, newProject])
+        toast.success('Project created successfully!')
+      }
+      resetForms()
+    } catch (error) {
+      toast.error('Failed to save project. Please try again.')
+    }
+  }
+
+  const submitCategory = (e) => {
+    e.preventDefault()
+    if (!categoryFormData.name.trim()) {
+      toast.error('Category name is required')
+      return
+    }
+
+    try {
+      if (editingItem) {
+        // Update existing category
+        const updatedCategories = categories.map(c => 
+          c.id === editingItem.id 
+            ? { ...c, name: categoryFormData.name.trim(), color: categoryFormData.color }
+            : c
+        )
+        saveCategories(updatedCategories)
+        toast.success('Category updated successfully!')
+      } else {
+        // Create new category
+        const newCategory = {
+          id: Date.now(),
+          name: categoryFormData.name.trim(),
+          color: categoryFormData.color,
+          taskCount: 0
+        }
+        saveCategories([...categories, newCategory])
+        toast.success('Category created successfully!')
+      }
+      resetForms()
+    } catch (error) {
+      toast.error('Failed to save category. Please try again.')
+    }
+  }
+
+  const handleDelete = (item, type) => {
+    setDeleteTarget({ item, type })
+    setShowDeleteConfirm(true)
+  }
+
+  const confirmDelete = () => {
+    if (!deleteTarget) return
+
+    try {
+      if (deleteTarget.type === 'project') {
+        const updatedProjects = projects.filter(p => p.id !== deleteTarget.item.id)
+        saveProjects(updatedProjects)
+        toast.success('Project deleted successfully!')
+      } else {
+        const updatedCategories = categories.filter(c => c.id !== deleteTarget.item.id)
+        saveCategories(updatedCategories)
+        toast.success('Category deleted successfully!')
+      }
+      resetForms()
+    } catch (error) {
+      toast.error('Failed to delete item. Please try again.')
+    }
+  }
+
+  const cancelDelete = () => {
+    setShowDeleteConfirm(false)
+    setDeleteTarget(null)
+  }
 
   return (
     <div className={`min-h-screen bg-gradient-to-br from-surface-50 via-primary/5 to-secondary/5 dark:from-surface-900 dark:via-surface-800 dark:to-surface-900 transition-colors duration-300`}>
@@ -112,7 +285,7 @@ function App() {
             <div className="sidebar-section-header">
               <h3 className="sidebar-section-title">Projects</h3>
               {sidebarExpanded && (
-                <button className="sidebar-add-btn">
+<button className="sidebar-add-btn" onClick={() => openProjectForm()}>
                   <ApperIcon name="Plus" className="w-4 h-4 text-surface-500 dark:text-surface-400" />
                 </button>
               )}
@@ -131,10 +304,16 @@ function App() {
                     <>
                       <span className="sidebar-item-count">{project.taskCount}</span>
                       <div className="sidebar-item-actions">
-                        <button className="sidebar-item-action">
+<button 
+                          className="sidebar-item-action"
+                          onClick={() => openProjectForm(project)}
+                        >
                           <ApperIcon name="Edit2" className="w-3 h-3 text-surface-400" />
                         </button>
-                        <button className="sidebar-item-action">
+                        <button 
+                          className="sidebar-item-action"
+                          onClick={() => handleDelete(project, 'project')}
+                        >
                           <ApperIcon name="Trash2" className="w-3 h-3 text-surface-400" />
                         </button>
                       </div>
@@ -150,7 +329,7 @@ function App() {
             <div className="sidebar-section-header">
               <h3 className="sidebar-section-title">Categories</h3>
               {sidebarExpanded && (
-                <button className="sidebar-add-btn">
+<button className="sidebar-add-btn" onClick={() => openCategoryForm()}>
                   <ApperIcon name="Plus" className="w-4 h-4 text-surface-500 dark:text-surface-400" />
                 </button>
               )}
@@ -169,10 +348,16 @@ function App() {
                     <>
                       <span className="sidebar-item-count">{category.taskCount}</span>
                       <div className="sidebar-item-actions">
-                        <button className="sidebar-item-action">
+<button 
+                          className="sidebar-item-action"
+                          onClick={() => openCategoryForm(category)}
+                        >
                           <ApperIcon name="Edit2" className="w-3 h-3 text-surface-400" />
                         </button>
-                        <button className="sidebar-item-action">
+                        <button 
+                          className="sidebar-item-action"
+                          onClick={() => handleDelete(category, 'category')}
+                        >
                           <ApperIcon name="Trash2" className="w-3 h-3 text-surface-400" />
                         </button>
                       </div>
