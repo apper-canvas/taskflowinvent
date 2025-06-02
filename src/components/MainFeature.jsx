@@ -2,9 +2,12 @@ import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'react-toastify'
 import { format, isToday, isTomorrow, isPast } from 'date-fns'
+import { useNavigate, useLocation } from 'react-router-dom'
 import ApperIcon from './ApperIcon'
 
 const MainFeature = () => {
+const navigate = useNavigate()
+  const location = useLocation()
   const [tasks, setTasks] = useState([])
   const [filteredTasks, setFilteredTasks] = useState([])
   const [showForm, setShowForm] = useState(false)
@@ -13,7 +16,6 @@ const MainFeature = () => {
   const [filterStatus, setFilterStatus] = useState('all')
   const [filterPriority, setFilterPriority] = useState('all')
   const [sortBy, setSortBy] = useState('dueDate')
-
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -248,20 +250,14 @@ const MainFeature = () => {
       <div className="mb-6 lg:mb-8">
         <div className="nav-tabs max-w-md mx-auto sm:mx-0">
           <button
-            onClick={() => {
-              setActiveView('list')
-              navigate('/')
-            }}
+            onClick={() => navigate('/')}
             className={`nav-tab ${location.pathname === '/' ? 'nav-tab-active' : 'nav-tab-inactive'}`}
           >
             <ApperIcon name="List" className="w-4 h-4" />
             <span>List View</span>
           </button>
-          <button
-            onClick={() => {
-              setActiveView('calendar')
-              navigate('/calendar')
-            }}
+<button
+            onClick={() => navigate('/calendar')}
             className={`nav-tab ${location.pathname === '/calendar' ? 'nav-tab-active' : 'nav-tab-inactive'}`}
           >
             <ApperIcon name="Calendar" className="w-4 h-4" />
