@@ -1,14 +1,28 @@
-import React, { useState, useEffect } from 'react'
-import { Routes, Route } from 'react-router-dom'
+import { createContext, useEffect, useState } from 'react'
+import { Routes, Route, useNavigate } from 'react-router-dom'
+import { useDispatch, useSelector } from 'react-redux'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
+import { setUser, clearUser } from './store/userSlice'
 import Home from './pages/Home'
 import Calendar from './pages/Calendar'
 import Statistics from './pages/Statistics'
 import NotFound from './pages/NotFound'
+import Login from './pages/Login'
+import Signup from './pages/Signup'
+import Callback from './pages/Callback'
+import ErrorPage from './pages/ErrorPage'
 import ApperIcon from './components/ApperIcon'
+import ProjectService from './services/ProjectService'
+import CategoryService from './services/CategoryService'
+
+// Create auth context
+export const AuthContext = createContext(null)
 function App() {
+  const navigate = useNavigate()
+  const dispatch = useDispatch()
+  const [isInitialized, setIsInitialized] = useState(false)
   const [darkMode, setDarkMode] = useState(false)
   const [sidebarExpanded, setSidebarExpanded] = useState(true)
   const [sidebarMobileOpen, setSidebarMobileOpen] = useState(false)
@@ -16,6 +30,8 @@ function App() {
   // State for projects and categories
   const [projects, setProjects] = useState([])
   const [categories, setCategories] = useState([])
+  const [loadingProjects, setLoadingProjects] = useState(false)
+  const [loadingCategories, setLoadingCategories] = useState(false)
   
   // Form state management
   const [showProjectForm, setShowProjectForm] = useState(false)
@@ -34,48 +50,121 @@ function App() {
     'project-pink', 'project-teal', 'project-orange', 'project-red'
   ]
 
-  // Load data from localStorage on mount
-  useEffect(() => {
-    const savedProjects = localStorage.getItem('taskflow-projects')
-    const savedCategories = localStorage.getItem('taskflow-categories')
-    
-    if (savedProjects) {
-      setProjects(JSON.parse(savedProjects))
-    } else {
-      // Default data if nothing in localStorage
-      const defaultProjects = [
-        { id: 1, name: 'Website Redesign', color: 'project-blue', taskCount: 8 },
-        { id: 2, name: 'Mobile App', color: 'project-green', taskCount: 12 },
-        { id: 3, name: 'Marketing Campaign', color: 'project-purple', taskCount: 5 }
-      ]
-      setProjects(defaultProjects)
-      localStorage.setItem('taskflow-projects', JSON.stringify(defaultProjects))
-    }
-    
-    if (savedCategories) {
-      setCategories(JSON.parse(savedCategories))
-    } else {
-      // Default data if nothing in localStorage
-      const defaultCategories = [
-        { id: 1, name: 'Development', color: 'project-indigo', taskCount: 15 },
-        { id: 2, name: 'Design', color: 'project-pink', taskCount: 7 },
-        { id: 3, name: 'Research', color: 'project-teal', taskCount: 4 }
-      ]
-      setCategories(defaultCategories)
-      localStorage.setItem('taskflow-categories', JSON.stringify(defaultCategories))
-    }
-  }, [])
+  // Get authentication status with proper error handling
+  const userState = useSelector((state) => state.user)
+  const isAuthenticated = userState?.isAuthenticated || false
 
-  // Save projects to localStorage
-  const saveProjects = (newProjects) => {
-    setProjects(newProjects)
-    localStorage.setItem('taskflow-projects', JSON.stringify(newProjects))
+  // Initialize ApperUI once when the app loads
+  useEffect(() => {
+    const { ApperClient, ApperUI } = window.ApperSDK
+    const client = new ApperClient({
+      apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
+      apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
+    })
+
+    // Initialize but don't show login yet
+    ApperUI.setup(client, {
+      target: '#authentication',
+      clientId: import.meta.env.VITE_APPER_PROJECT_ID,
+      view: 'both',
+      onSuccess: function (user) {
+        setIsInitialized(true)
+        // CRITICAL: This exact currentPath logic must be preserved in all implementations
+        // DO NOT simplify or modify this pattern as it ensures proper redirection flow
+        let currentPath = window.location.pathname + window.location.search
+        let redirectPath = new URLSearchParams(window.location.search).get('redirect')
+        const isAuthPage = currentPath.includes('/login') || currentPath.includes('/signup') || currentPath.includes(
+            '/callback') || currentPath.includes('/error')
+        if (user) {
+          // User is authenticated
+          if (redirectPath) {
+            navigate(redirectPath)
+          } else if (!isAuthPage) {
+            if (!currentPath.includes('/login') && !currentPath.includes('/signup')) {
+              navigate(currentPath)
+            } else {
+              navigate('/')
+            }
+          } else {
+            navigate('/')
+          }
+          // Store user information in Redux
+          dispatch(setUser(JSON.parse(JSON.stringify(user))))
+        } else {
+          // User is not authenticated
+          if (!isAuthPage) {
+            navigate(
+              currentPath.includes('/signup')
+               ? `/signup?redirect=${currentPath}`
+               : currentPath.includes('/login')
+               ? `/login?redirect=${currentPath}`
+               : '/login')
+          } else if (redirectPath) {
+            if (
+              ![
+                'error',
+                'signup',
+                'login',
+                'callback'
+              ].some((path) => currentPath.includes(path)))
+              navigate(`/login?redirect=${redirectPath}`)
+            else {
+              navigate(currentPath)
+            }
+          } else if (isAuthPage) {
+            navigate(currentPath)
+          } else {
+            navigate('/login')
+          }
+          dispatch(clearUser())
+        }
+      },
+      onError: function(error) {
+        console.error("Authentication failed:", error)
+      }
+    })
+  }, [navigate, dispatch])
+
+  // Load data from database when authenticated
+  useEffect(() => {
+    if (isAuthenticated && isInitialized) {
+      loadProjects()
+      loadCategories()
+    }
+  }, [isAuthenticated, isInitialized])
+
+  // Load projects from database
+  const loadProjects = async () => {
+    if (loadingProjects) return
+    
+    setLoadingProjects(true)
+    try {
+      const projectsData = await ProjectService.fetchProjects()
+      setProjects(projectsData || [])
+    } catch (error) {
+      console.error('Error loading projects:', error)
+      toast.error('Failed to load projects')
+      setProjects([])
+    } finally {
+      setLoadingProjects(false)
+    }
   }
 
-  // Save categories to localStorage
-  const saveCategories = (newCategories) => {
-    setCategories(newCategories)
-    localStorage.setItem('taskflow-categories', JSON.stringify(newCategories))
+  // Load categories from database
+  const loadCategories = async () => {
+    if (loadingCategories) return
+    
+    setLoadingCategories(true)
+    try {
+      const categoriesData = await CategoryService.fetchCategories()
+      setCategories(categoriesData || [])
+    } catch (error) {
+      console.error('Error loading categories:', error)
+      toast.error('Failed to load categories')
+      setCategories([])
+    } finally {
+      setLoadingCategories(false)
+    }
   }
 
   useEffect(() => {
@@ -123,32 +212,38 @@ function App() {
       toast.error('Project name is required')
       return
     }
-
-    try {
-      if (editingItem) {
-        // Update existing project
-        const updatedProjects = projects.map(p => 
-          p.id === editingItem.id 
-            ? { ...p, name: projectFormData.name.trim(), color: projectFormData.color }
-            : p
-        )
-        saveProjects(updatedProjects)
-        toast.success('Project updated successfully!')
-      } else {
-        // Create new project
-        const newProject = {
-          id: Date.now(),
-          name: projectFormData.name.trim(),
+const submitProjectAsync = async () => {
+      if (loadingProjects) return
+      
+      setLoadingProjects(true)
+      try {
+        const projectData = {
+          Name: projectFormData.name.trim(),
           color: projectFormData.color,
-          taskCount: 0
+          task_count: 0
         }
-        saveProjects([...projects, newProject])
-        toast.success('Project created successfully!')
+
+        if (editingItem) {
+          // Update existing project
+          await ProjectService.updateProject(editingItem.Id, projectData)
+          toast.success('Project updated successfully!')
+        } else {
+          // Create new project
+          await ProjectService.createProject(projectData)
+          toast.success('Project created successfully!')
+        }
+        
+        await loadProjects() // Reload projects from database
+        resetForms()
+      } catch (error) {
+        console.error('Error saving project:', error)
+        toast.error(error.message || 'Failed to save project. Please try again.')
+      } finally {
+        setLoadingProjects(false)
       }
-      resetForms()
-    } catch (error) {
-      toast.error('Failed to save project. Please try again.')
     }
+
+    submitProjectAsync()
   }
 
   const submitCategory = (e) => {
@@ -157,32 +252,38 @@ function App() {
       toast.error('Category name is required')
       return
     }
-
-    try {
-      if (editingItem) {
-        // Update existing category
-        const updatedCategories = categories.map(c => 
-          c.id === editingItem.id 
-            ? { ...c, name: categoryFormData.name.trim(), color: categoryFormData.color }
-            : c
-        )
-        saveCategories(updatedCategories)
-        toast.success('Category updated successfully!')
-      } else {
-        // Create new category
-        const newCategory = {
-          id: Date.now(),
-          name: categoryFormData.name.trim(),
+const submitCategoryAsync = async () => {
+      if (loadingCategories) return
+      
+      setLoadingCategories(true)
+      try {
+        const categoryData = {
+          Name: categoryFormData.name.trim(),
           color: categoryFormData.color,
-          taskCount: 0
+          task_count: 0
         }
-        saveCategories([...categories, newCategory])
-        toast.success('Category created successfully!')
+
+        if (editingItem) {
+          // Update existing category
+          await CategoryService.updateCategory(editingItem.Id, categoryData)
+          toast.success('Category updated successfully!')
+        } else {
+          // Create new category
+          await CategoryService.createCategory(categoryData)
+          toast.success('Category created successfully!')
+        }
+        
+        await loadCategories() // Reload categories from database
+        resetForms()
+      } catch (error) {
+        console.error('Error saving category:', error)
+        toast.error(error.message || 'Failed to save category. Please try again.')
+      } finally {
+        setLoadingCategories(false)
       }
-      resetForms()
-    } catch (error) {
-      toast.error('Failed to save category. Please try again.')
     }
+
+    submitCategoryAsync()
   }
 
   const handleDelete = (item, type) => {
@@ -193,20 +294,31 @@ function App() {
   const confirmDelete = () => {
     if (!deleteTarget) return
 
-    try {
-      if (deleteTarget.type === 'project') {
-        const updatedProjects = projects.filter(p => p.id !== deleteTarget.item.id)
-        saveProjects(updatedProjects)
-        toast.success('Project deleted successfully!')
-      } else {
-        const updatedCategories = categories.filter(c => c.id !== deleteTarget.item.id)
-        saveCategories(updatedCategories)
-        toast.success('Category deleted successfully!')
+const confirmDeleteAsync = async () => {
+      try {
+        if (deleteTarget.type === 'project') {
+          setLoadingProjects(true)
+          await ProjectService.deleteProject(deleteTarget.item.Id)
+          await loadProjects()
+          toast.success('Project deleted successfully!')
+          setLoadingProjects(false)
+        } else {
+          setLoadingCategories(true)
+          await CategoryService.deleteCategory(deleteTarget.item.Id)
+          await loadCategories()
+          toast.success('Category deleted successfully!')
+          setLoadingCategories(false)
+        }
+        resetForms()
+      } catch (error) {
+        console.error('Error deleting item:', error)
+        toast.error(error.message || 'Failed to delete item. Please try again.')
+        setLoadingProjects(false)
+        setLoadingCategories(false)
       }
-      resetForms()
-    } catch (error) {
-      toast.error('Failed to delete item. Please try again.')
     }
+
+    confirmDeleteAsync()
   }
 
   const cancelDelete = () => {
@@ -214,6 +326,42 @@ function App() {
     setDeleteTarget(null)
   }
 
+// Authentication methods to share via context
+  const authMethods = {
+    isInitialized,
+    logout: async () => {
+      try {
+        const { ApperUI } = window.ApperSDK
+        await ApperUI.logout()
+        dispatch(clearUser())
+        navigate('/login')
+      } catch (error) {
+        console.error("Logout failed:", error)
+      }
+    }
+  }
+
+  // Don't render routes until initialization is complete
+  if (!isInitialized) {
+    return <div className="flex items-center justify-center min-h-screen">
+      <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+    </div>
+  }
+
+  // Redirect to login if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <AuthContext.Provider value={authMethods}>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/callback" element={<Callback />} />
+          <Route path="/error" element={<ErrorPage />} />
+          <Route path="*" element={<Login />} />
+        </Routes>
+      </AuthContext.Provider>
+    )
+  }
   return (
     <div className={`min-h-screen bg-gradient-to-br from-surface-50 via-primary/5 to-secondary/5 dark:from-surface-900 dark:via-surface-800 dark:to-surface-900 transition-colors duration-300`}>
       {/* Header */}
@@ -224,12 +372,19 @@ function App() {
               <div className="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center">
                 <ApperIcon name="CheckSquare" className="w-5 h-5 text-white" />
               </div>
-              <h1 className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+<h1 className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                 TaskFlow
-</h1>
+              </h1>
             </div>
             
             <div className="flex items-center space-x-2">
+              <button
+                onClick={authMethods.logout}
+                className="p-2 rounded-lg bg-surface-100 dark:bg-surface-700 hover:bg-surface-200 dark:hover:bg-surface-600 transition-colors"
+              >
+                <ApperIcon name="LogOut" className="w-5 h-5 text-surface-600 dark:text-surface-300" />
+              </button>
+              
               <button
                 onClick={toggleSidebar}
                 className="p-2 rounded-lg bg-surface-100 dark:bg-surface-700 hover:bg-surface-200 dark:hover:bg-surface-600 transition-colors md:hidden"
@@ -295,14 +450,14 @@ function App() {
                 <div key={project.id} className="sidebar-item group">
                   <div className="sidebar-item-content">
                     <div className={`sidebar-item-color ${project.color}`} />
-                    <span className="sidebar-item-text">{project.name}</span>
+<span className="sidebar-item-text">{project?.Name || project?.name}</span>
                     {!sidebarExpanded && (
-                      <div className="sidebar-tooltip">{project.name}</div>
+<div className="sidebar-tooltip">{project?.Name || project?.name}</div>
                     )}
                   </div>
                   {sidebarExpanded && (
                     <>
-                      <span className="sidebar-item-count">{project.taskCount}</span>
+<span className="sidebar-item-count">{project?.task_count || project?.taskCount || 0}</span>
                       <div className="sidebar-item-actions">
 <button 
                           className="sidebar-item-action"
@@ -339,14 +494,14 @@ function App() {
                 <div key={category.id} className="sidebar-item group">
                   <div className="sidebar-item-content">
                     <div className={`sidebar-item-color ${category.color}`} />
-                    <span className="sidebar-item-text">{category.name}</span>
+<span className="sidebar-item-text">{category?.Name || category?.name}</span>
                     {!sidebarExpanded && (
-                      <div className="sidebar-tooltip">{category.name}</div>
+<div className="sidebar-tooltip">{category?.Name || category?.name}</div>
                     )}
                   </div>
                   {sidebarExpanded && (
                     <>
-                      <span className="sidebar-item-count">{category.taskCount}</span>
+<span className="sidebar-item-count">{category?.task_count || category?.taskCount || 0}</span>
                       <div className="sidebar-item-actions">
 <button 
                           className="sidebar-item-action"
@@ -378,8 +533,22 @@ function App() {
           <Route path="/statistics" element={<Statistics />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
-</div>
-
+<ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme={darkMode ? "dark" : "light"}
+        className="mt-16"
+        toastClassName="bg-white dark:bg-surface-800 text-surface-900 dark:text-surface-100"
+      />
+/>
+      
       {/* Project Form Modal */}
       <AnimatePresence>
         {showProjectForm && (
@@ -412,11 +581,11 @@ function App() {
                 <div>
                   <label className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
                     Project Name *
-                  </label>
+</label>
                   <input
-                    type="text"
                     value={projectFormData.name}
                     onChange={(e) => setProjectFormData({ ...projectFormData, name: e.target.value })}
+                    disabled={loadingProjects}
                     className="input-field"
                     placeholder="Enter project name..."
                     required
@@ -445,9 +614,9 @@ function App() {
                   </div>
                 </div>
 
-                <div className="flex space-x-4 pt-4">
-                  <button type="submit" className="btn-primary flex-1">
-                    {editingItem ? 'Update Project' : 'Create Project'}
+<div className="flex space-x-4 pt-4">
+                  <button type="submit" className="btn-primary flex-1" disabled={loadingProjects}>
+                    {loadingProjects ? 'Saving...' : (editingItem ? 'Update Project' : 'Create Project')}
                   </button>
                   <button type="button" onClick={resetForms} className="btn-secondary">
                     Cancel
@@ -491,11 +660,11 @@ function App() {
                 <div>
                   <label className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
                     Category Name *
-                  </label>
+</label>
                   <input
-                    type="text"
                     value={categoryFormData.name}
                     onChange={(e) => setCategoryFormData({ ...categoryFormData, name: e.target.value })}
+                    disabled={loadingCategories}
                     className="input-field"
                     placeholder="Enter category name..."
                     required
@@ -524,9 +693,9 @@ function App() {
                   </div>
                 </div>
 
-                <div className="flex space-x-4 pt-4">
-                  <button type="submit" className="btn-primary flex-1">
-                    {editingItem ? 'Update Category' : 'Create Category'}
+<div className="flex space-x-4 pt-4">
+                  <button type="submit" className="btn-primary flex-1" disabled={loadingCategories}>
+                    {loadingCategories ? 'Saving...' : (editingItem ? 'Update Category' : 'Create Category')}
                   </button>
                   <button type="button" onClick={resetForms} className="btn-secondary">
                     Cancel
@@ -561,8 +730,8 @@ function App() {
                 Delete {deleteTarget.type === 'project' ? 'Project' : 'Category'}
               </h2>
               
-              <p className="text-center text-surface-600 dark:text-surface-400 mb-6">
-                Are you sure you want to delete "{deleteTarget.item.name}"? This action cannot be undone.
+<p className="text-center text-surface-600 dark:text-surface-400 mb-6">
+                Are you sure you want to delete "{deleteTarget.item?.Name || deleteTarget.item?.name}"? This action cannot be undone.
               </p>
 
               <div className="flex space-x-4">
@@ -582,24 +751,8 @@ function App() {
             </motion.div>
           </motion.div>
         )}
+)}
       </AnimatePresence>
-
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme={darkMode ? "dark" : "light"}
-        className="mt-16"
-        toastClassName="bg-white dark:bg-surface-800 text-surface-900 dark:text-surface-100"
-      />
-    </div>
+    </AuthContext.Provider>
   )
 }
-
-export default App

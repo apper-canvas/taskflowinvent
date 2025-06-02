@@ -32,12 +32,20 @@ const Statistics = () => {
   const [tasks, setTasks] = useState([])
   const [timeRange, setTimeRange] = useState('week') // week, month, all
 
-  useEffect(() => {
-    const savedTasks = localStorage.getItem('taskflow-tasks')
-    if (savedTasks) {
-      setTasks(JSON.parse(savedTasks))
-    }
+useEffect(() => {
+    loadTasks()
   }, [])
+
+  const loadTasks = async () => {
+    try {
+      const { default: TaskService } = await import('../services/TaskService')
+      const tasksData = await TaskService.fetchTasks()
+      setTasks(tasksData || [])
+    } catch (error) {
+      console.error('Error loading tasks for statistics:', error)
+      setTasks([])
+    }
+  }
 
   const chartOptions = {
     responsive: true,
@@ -83,13 +91,13 @@ const Statistics = () => {
       const weekStart = startOfWeek(now)
       const weekEnd = endOfWeek(now)
       filteredTasks = tasks.filter(task => {
-        const taskDate = new Date(task.createdAt)
+const taskDate = new Date(task?.created_at || task?.createdAt)
         return isWithinInterval(taskDate, { start: weekStart, end: weekEnd })
       })
     } else if (timeRange === 'month') {
       const monthStart = subDays(now, 30)
       filteredTasks = tasks.filter(task => {
-        const taskDate = new Date(task.createdAt)
+const taskDate = new Date(task?.created_at || task?.createdAt)
         return taskDate >= monthStart
       })
     }
@@ -99,8 +107,8 @@ const Statistics = () => {
     const pendingTasks = filteredTasks.filter(task => task.status === 'pending').length
     const inProgressTasks = filteredTasks.filter(task => task.status === 'in-progress').length
     const overdueTasks = filteredTasks.filter(task => 
-      task.dueDate && 
-      new Date(task.dueDate) < now && 
+task?.due_date || task?.dueDate &&
+new Date(task?.due_date || task?.dueDate) < now &&
       task.status !== 'completed'
     ).length
 
@@ -170,8 +178,8 @@ const Statistics = () => {
 
     const dailyCompletions = days.map(day => {
       return tasks.filter(task => {
-        if (!task.updatedAt || task.status !== 'completed') return false
-        const taskDate = new Date(task.updatedAt)
+if (!(task?.updated_at || task?.updatedAt) || task.status !== 'completed') return false
+const taskDate = new Date(task?.updated_at || task?.updatedAt)
         return format(taskDate, 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd')
       }).length
     })

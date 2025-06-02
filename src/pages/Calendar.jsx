@@ -5,12 +5,14 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'react-toastify'
 import { format, parseISO } from 'date-fns'
 import ApperIcon from '../components/ApperIcon'
+import TaskService from '../services/TaskService'
 import 'react-big-calendar/lib/css/react-big-calendar.css'
 
 const localizer = momentLocalizer(moment)
 
 const Calendar = () => {
-  const [tasks, setTasks] = useState([])
+const [tasks, setTasks] = useState([])
+  const [loading, setLoading] = useState(false)
   const [view, setView] = useState('month')
   const [date, setDate] = useState(new Date())
   const [showForm, setShowForm] = useState(false)
@@ -38,31 +40,38 @@ const Calendar = () => {
     { value: 'completed', label: 'Completed', icon: 'CheckCircle' }
   ]
 
-  // Load tasks from localStorage
+// Load tasks from database
   useEffect(() => {
-    const savedTasks = localStorage.getItem('taskflow-tasks')
-    if (savedTasks) {
-      const parsedTasks = JSON.parse(savedTasks)
-      setTasks(parsedTasks)
-    }
+    loadTasks()
   }, [])
 
-  // Save tasks to localStorage
-  useEffect(() => {
-    localStorage.setItem('taskflow-tasks', JSON.stringify(tasks))
-  }, [tasks])
+  const loadTasks = async () => {
+    if (loading) return
+    
+    setLoading(true)
+    try {
+      const tasksData = await TaskService.fetchTasks()
+      setTasks(tasksData || [])
+    } catch (error) {
+      console.error('Error loading tasks:', error)
+      toast.error('Failed to load tasks')
+      setTasks([])
+    } finally {
+      setLoading(false)
+    }
+  }
 
   // Convert tasks to calendar events
   const events = useMemo(() => {
     return tasks
       .filter(task => task.dueDate)
       .map(task => ({
-        id: task.id,
-        title: task.title,
-        start: new Date(task.dueDate),
-        end: new Date(task.dueDate),
+id: task?.Id || task?.id,
+        title: task?.title || task?.Name,
+        start: new Date(task?.due_date || task?.dueDate),
+        end: new Date(task?.due_date || task?.dueDate),
         resource: task,
-        className: `priority-${task.priority} status-${task.status}`
+        className: `priority-${task?.priority} status-${task?.status}`
       }))
   }, [tasks])
 
@@ -99,23 +108,39 @@ const Calendar = () => {
       toast.error('Please enter a task title')
       return
     }
+const submitTaskAsync = async () => {
+      if (loading) return
+      
+      setLoading(true)
+      try {
+        const taskData = {
+          title: formData.title.trim(),
+          description: formData.description,
+          priority: formData.priority,
+          due_date: formData.dueDate,
+          status: formData.status,
+          Name: formData.title.trim()
+        }
 
-    const taskData = {
-      ...formData,
-      id: editingTask ? editingTask.id : Date.now().toString(),
-      createdAt: editingTask ? editingTask.createdAt : new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+        if (editingTask) {
+          await TaskService.updateTask(editingTask?.Id || editingTask?.id, taskData)
+          toast.success('Task updated successfully!')
+        } else {
+          await TaskService.createTask(taskData)
+          toast.success('Task created successfully!')
+        }
+        
+        await loadTasks() // Reload tasks from database
+        resetForm()
+      } catch (error) {
+        console.error('Error saving task:', error)
+        toast.error(error.message || 'Failed to save task. Please try again.')
+      } finally {
+        setLoading(false)
+      }
     }
 
-    if (editingTask) {
-      setTasks(tasks.map(task => task.id === editingTask.id ? taskData : task))
-      toast.success('Task updated successfully!')
-    } else {
-      setTasks([...tasks, taskData])
-      toast.success('Task created successfully!')
-    }
-
-    resetForm()
+    submitTaskAsync()
   }
 
   const resetForm = () => {
@@ -131,10 +156,21 @@ const Calendar = () => {
     setSelectedDate(null)
   }
 
-  const deleteTask = (taskId) => {
-    setTasks(tasks.filter(task => task.id !== taskId))
-    toast.success('Task deleted successfully!')
-    resetForm()
+const deleteTask = async (taskId) => {
+    if (loading) return
+    
+    setLoading(true)
+    try {
+      await TaskService.deleteTask(taskId)
+      await loadTasks()
+      toast.success('Task deleted successfully!')
+      resetForm()
+    } catch (error) {
+      console.error('Error deleting task:', error)
+      toast.error(error.message || 'Failed to delete task. Please try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   const eventStyleGetter = (event) => {
@@ -322,19 +358,20 @@ const Calendar = () => {
                 </div>
 
                 <div className="flex space-x-4 pt-4">
-                  <button
+<button
                     type="submit"
                     className="btn-primary flex-1"
+                    disabled={loading}
                   >
-                    {editingTask ? 'Update Task' : 'Create Task'}
+                    {loading ? 'Saving...' : (editingTask ? 'Update Task' : 'Create Task')}
                   </button>
-                  {editingTask && (
+{editingTask && (
                     <button
-                      type="button"
-                      onClick={() => deleteTask(editingTask.id)}
+                      onClick={() => deleteTask(editingTask?.Id || editingTask?.id)}
                       className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                      disabled={loading}
                     >
-                      Delete
+                      {loading ? 'Deleting...' : 'Delete'}
                     </button>
                   )}
                   <button
