@@ -193,7 +193,211 @@ function App() {
           <Route path="/statistics" element={<Statistics />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
-      </div>
+</div>
+
+      {/* Project Form Modal */}
+      <AnimatePresence>
+        {showProjectForm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={(e) => e.target === e.currentTarget && resetForms()}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white dark:bg-surface-800 rounded-xl shadow-card p-6 w-full max-w-md"
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-surface-900 dark:text-surface-100">
+                  {editingItem ? 'Edit Project' : 'Add New Project'}
+                </h2>
+                <button
+                  onClick={resetForms}
+                  className="p-1 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-700 transition-colors"
+                >
+                  <ApperIcon name="X" className="w-5 h-5 text-surface-500" />
+                </button>
+              </div>
+
+              <form onSubmit={submitProject} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+                    Project Name *
+                  </label>
+                  <input
+                    type="text"
+                    value={projectFormData.name}
+                    onChange={(e) => setProjectFormData({ ...projectFormData, name: e.target.value })}
+                    className="input-field"
+                    placeholder="Enter project name..."
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+                    Color Theme
+                  </label>
+                  <div className="grid grid-cols-4 gap-2">
+                    {availableColors.map((color) => (
+                      <button
+                        key={color}
+                        type="button"
+                        onClick={() => setProjectFormData({ ...projectFormData, color })}
+                        className={`w-full h-12 rounded-lg border-2 transition-all ${
+                          projectFormData.color === color
+                            ? 'border-surface-900 dark:border-surface-100 scale-105'
+                            : 'border-surface-200 dark:border-surface-600 hover:border-surface-400'
+                        }`}
+                      >
+                        <div className={`w-full h-full rounded-md ${color}`} />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex space-x-4 pt-4">
+                  <button type="submit" className="btn-primary flex-1">
+                    {editingItem ? 'Update Project' : 'Create Project'}
+                  </button>
+                  <button type="button" onClick={resetForms} className="btn-secondary">
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Category Form Modal */}
+      <AnimatePresence>
+        {showCategoryForm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={(e) => e.target === e.currentTarget && resetForms()}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white dark:bg-surface-800 rounded-xl shadow-card p-6 w-full max-w-md"
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-surface-900 dark:text-surface-100">
+                  {editingItem ? 'Edit Category' : 'Add New Category'}
+                </h2>
+                <button
+                  onClick={resetForms}
+                  className="p-1 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-700 transition-colors"
+                >
+                  <ApperIcon name="X" className="w-5 h-5 text-surface-500" />
+                </button>
+              </div>
+
+              <form onSubmit={submitCategory} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+                    Category Name *
+                  </label>
+                  <input
+                    type="text"
+                    value={categoryFormData.name}
+                    onChange={(e) => setCategoryFormData({ ...categoryFormData, name: e.target.value })}
+                    className="input-field"
+                    placeholder="Enter category name..."
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+                    Color Theme
+                  </label>
+                  <div className="grid grid-cols-4 gap-2">
+                    {availableColors.map((color) => (
+                      <button
+                        key={color}
+                        type="button"
+                        onClick={() => setCategoryFormData({ ...categoryFormData, color })}
+                        className={`w-full h-12 rounded-lg border-2 transition-all ${
+                          categoryFormData.color === color
+                            ? 'border-surface-900 dark:border-surface-100 scale-105'
+                            : 'border-surface-200 dark:border-surface-600 hover:border-surface-400'
+                        }`}
+                      >
+                        <div className={`w-full h-full rounded-md ${color}`} />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex space-x-4 pt-4">
+                  <button type="submit" className="btn-primary flex-1">
+                    {editingItem ? 'Update Category' : 'Create Category'}
+                  </button>
+                  <button type="button" onClick={resetForms} className="btn-secondary">
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {showDeleteConfirm && deleteTarget && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white dark:bg-surface-800 rounded-xl shadow-card p-6 w-full max-w-md"
+            >
+              <div className="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-red-100 dark:bg-red-900/30 rounded-full">
+                <ApperIcon name="AlertTriangle" className="w-6 h-6 text-red-600 dark:text-red-400" />
+              </div>
+              
+              <h2 className="text-xl font-bold text-center text-surface-900 dark:text-surface-100 mb-2">
+                Delete {deleteTarget.type === 'project' ? 'Project' : 'Category'}
+              </h2>
+              
+              <p className="text-center text-surface-600 dark:text-surface-400 mb-6">
+                Are you sure you want to delete "{deleteTarget.item.name}"? This action cannot be undone.
+              </p>
+
+              <div className="flex space-x-4">
+                <button
+                  onClick={confirmDelete}
+                  className="flex-1 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+                >
+                  Delete
+                </button>
+                <button
+                  onClick={cancelDelete}
+                  className="flex-1 btn-secondary"
+                >
+                  Cancel
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <ToastContainer
         position="top-right"
