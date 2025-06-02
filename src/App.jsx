@@ -547,7 +547,6 @@ const confirmDeleteAsync = async () => {
         className="mt-16"
         toastClassName="bg-white dark:bg-surface-800 text-surface-900 dark:text-surface-100"
       />
-/>
       
       {/* Project Form Modal */}
       <AnimatePresence>
@@ -750,9 +749,10 @@ const confirmDeleteAsync = async () => {
               </div>
             </motion.div>
           </motion.div>
-        )}
 )}
       </AnimatePresence>
     </AuthContext.Provider>
   )
 }
+
+export default App
