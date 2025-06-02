@@ -4,9 +4,9 @@ import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import Home from './pages/Home'
 import Calendar from './pages/Calendar'
+import Statistics from './pages/Statistics'
 import NotFound from './pages/NotFound'
 import ApperIcon from './components/ApperIcon'
-
 function App() {
   const [darkMode, setDarkMode] = useState(false)
 
