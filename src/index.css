@@ -345,9 +345,8 @@
   .notification-actions {
     @apply flex-col space-x-0 space-y-2;
   }
-
-  .notification-btn {
-@apply w-full justify-center;
+.notification-btn {
+    @apply w-full justify-center;
   }
 }
 
@@ -537,11 +536,12 @@
   
   .time-range-selector {
     @apply w-full;
+.time-range-selector {
+    @apply w-full;
   }
   
   .time-range-btn {
     @apply flex-1 text-center;
-@apply flex-1 text-center;
   }
 }
 
@@ -588,6 +588,8 @@
 
 .sidebar-add-btn {
   @apply p-1.5 rounded-md hover:bg-surface-100 dark:hover:bg-surface-700 transition-colors;
+.sidebar-add-btn {
+  @apply p-1.5 rounded-md hover:bg-surface-100 dark:hover:bg-surface-700 transition-colors;
 }
 
 .sidebar-list {
@@ -595,9 +597,10 @@
 }
 
 .sidebar-item {
-  @apply flex items-center justify-between p-3 rounded-lg hover:bg-surface-50 dark:hover:bg-surface-700 transition-all duration-200 cursor-pointer group;
+  @apply flex items-center justify-between p-3 rounded-lg hover:bg-surface-50 dark:hover:bg-surface-700 transition-all duration-200 cursor-pointer;
 }
 
+.sidebar-item.active {
 .sidebar-item.active {
   @apply bg-primary/10 dark:bg-primary/20 border-l-4 border-primary;
 }
@@ -712,13 +715,10 @@
 .sidebar-section-expand {
   @apply max-h-96 transition-all duration-300 ease-in-out;
 }
-
-/* Tooltip for collapsed sidebar */
 /* Tooltip for collapsed sidebar */
 .sidebar-tooltip {
   @apply absolute left-full ml-2 px-2 py-1 bg-surface-900 dark:bg-surface-700 text-white text-xs rounded shadow-lg opacity-0 pointer-events-none transition-all duration-200 z-50;
 }
-
 .sidebar-collapsed .sidebar-item:hover .sidebar-tooltip {
   @apply opacity-100;
 }
