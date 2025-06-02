@@ -117,14 +117,13 @@ function App() {
                 </button>
               )}
             </div>
-            
-            <div className="sidebar-list">
+<div className="sidebar-list">
               {projects.map((project) => (
-                <div key={project.id} className="sidebar-item">
+                <div key={project.id} className="sidebar-item group">
                   <div className="sidebar-item-content">
                     <div className={`sidebar-item-color ${project.color}`} />
                     <span className="sidebar-item-text">{project.name}</span>
-                    {sidebarExpanded && (
+                    {!sidebarExpanded && (
                       <div className="sidebar-tooltip">{project.name}</div>
                     )}
                   </div>
@@ -156,10 +155,9 @@ function App() {
                 </button>
               )}
             </div>
-            
-            <div className="sidebar-list">
+<div className="sidebar-list">
               {categories.map((category) => (
-                <div key={category.id} className="sidebar-item">
+                <div key={category.id} className="sidebar-item group">
                   <div className="sidebar-item-content">
                     <div className={`sidebar-item-color ${category.color}`} />
                     <span className="sidebar-item-text">{category.name}</span>
@@ -182,7 +180,7 @@ function App() {
                   )}
                 </div>
               ))}
-            </div>
+</div>
           </div>
         </div>
       </aside>
